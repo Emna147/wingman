@@ -11,7 +11,6 @@ const session = await authClient.getSession({ query: {
     disableCookieCache: true
 }});
 
-
 // ✅ Export useful methods directly
 export const {
   signIn,
