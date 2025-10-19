@@ -11,6 +11,7 @@ import {
   GridIcon,
   HorizontaLDots,
   ListIcon,
+  MapIcon,
   PageIcon,
   PieChartIcon,
   PlugInIcon,
@@ -36,6 +37,11 @@ const navItems: NavItem[] = [
     icon: <CalenderIcon />,
     name: "Calendar",
     path: "/calendar",
+  },
+  {
+    icon: <MapIcon />,
+    name: "Map",
+    path: "/map",
   },
   {
     icon: <UserCircleIcon />,
