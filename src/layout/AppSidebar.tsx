@@ -7,6 +7,7 @@ import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
   CalenderIcon,
+  ChatIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
@@ -47,6 +48,11 @@ const navItems: NavItem[] = [
     icon: <ListIcon />,
     name: "My Activities",
     path: "/my-activities",
+  },
+    {
+    icon: <ChatIcon/>,
+    name: "Messages",
+    path: "/messages",
   },
   {
     icon: <UserCircleIcon />,
