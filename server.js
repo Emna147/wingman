@@ -22,7 +22,7 @@ app.prepare().then(() => {
     }
   });
 
-  // Initialize Socket.io
+  
   const io = new Server(httpServer, {
     path: '/api/socket',
     addTrailingSlash: false,
@@ -33,14 +33,14 @@ app.prepare().then(() => {
     },
   });
 
-  // Make io globally accessible
+ 
   global.io = io;
 
-  // Socket.io connection handling for ACTIVITY GROUP CHATS
+ 
   io.on('connection', (socket) => {
     console.log('✅ Client connected:', socket.id);
 
-    // Join an activity chat room
+
     socket.on('join-activity', (activityId) => {
       socket.join(`activity-${activityId}`);
       console.log(`🔵 Socket ${socket.id} joined activity-${activityId}`);
