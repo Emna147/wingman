@@ -1,6 +1,8 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useModal } from "../../hooks/useModal";
+import { useSession } from "@/lib/auth-client";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
@@ -8,11 +10,134 @@ import Label from "../form/Label";
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+  const { data: session } = useSession();
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    bio: "",
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [userData, setUserData] = useState({
+    phone: "",
+    bio: "",
+  });
+
+  // Fetch user data from database
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch("/api/user/profile");
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Fetched user data:", data.user);
+        setUserData({
+          phone: data.user.phone || "",
+          bio: data.user.bio || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
   };
+
+  // Initialize form data when session is available
+  useEffect(() => {
+    if (session?.user) {
+      const { firstName, lastName } = splitName(session.user.name);
+      setFormData({
+        firstName,
+        lastName,
+        email: session.user.email || "",
+        phone: "",
+        bio: "",
+      });
+      // Fetch additional user data from database
+      fetchUserData();
+    }
+  }, [session]);
+
+  // Update form data when userData changes
+  useEffect(() => {
+    console.log("Updating form data with userData:", userData);
+    setFormData(prev => ({
+      ...prev,
+      phone: userData.phone,
+      bio: userData.bio,
+    }));
+  }, [userData]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          bio: formData.bio,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update profile");
+      }
+
+      setSuccess("Profile updated successfully!");
+      closeModal();
+      
+      // Refresh user data from database
+      await fetchUserData();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update profile";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+  if (!session) {
+    return (
+      <Link
+        href="/signin"
+        className="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600"
+      >
+        Sign In
+      </Link>
+    );
+  }
+
+  // Split full name into first and last name
+  const splitName = (fullName: string) => {
+    const nameParts = fullName.trim().split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+    return { firstName, lastName };
+  };
+
+  const { firstName, lastName } = splitName(session.user.name);
+  
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -27,7 +152,7 @@ export default function UserInfoCard() {
                 First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Musharof
+                {firstName}
               </p>
             </div>
 
@@ -36,7 +161,7 @@ export default function UserInfoCard() {
                 Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Chowdhury
+                {lastName}
               </p>
             </div>
 
@@ -45,7 +170,7 @@ export default function UserInfoCard() {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
+                {session.user.email}
               </p>
             </div>
 
@@ -54,7 +179,7 @@ export default function UserInfoCard() {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
+                {userData.phone || "Not provided"}
               </p>
             </div>
 
@@ -63,7 +188,7 @@ export default function UserInfoCard() {
                 Bio
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Team Manager
+                {userData.bio || "Not provided"}
               </p>
             </div>
           </div>
@@ -106,79 +231,82 @@ export default function UserInfoCard() {
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
               <div>
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Social Links
-                </h5>
-
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <Label>Facebook</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.facebook.com/PimjoHQ"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>X.com</Label>
-                    <Input type="text" defaultValue="https://x.com/PimjoHQ" />
-                  </div>
-
-                  <div>
-                    <Label>Linkedin</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.linkedin.com/company/pimjo"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://instagram.com/PimjoHQ"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="mt-7">
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
                   Personal Information
                 </h5>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
                     <Label>First Name</Label>
-                    <Input type="text" defaultValue="Musharof" />
+                    <Input 
+                      type="text" 
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Last Name</Label>
-                    <Input type="text" defaultValue="Chowdhury" />
+                    <Input 
+                      type="text" 
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange("lastName", e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Email Address</Label>
-                    <Input type="text" defaultValue="randomuser@pimjo.com" />
+                    <Input 
+                      type="email" 
+                      value={formData.email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" defaultValue="+09 363 398 46" />
+                    <Input 
+                      type="text" 
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange("phone", e.target.value)}
+                      placeholder="+1 234 567 8900"
+                    />
                   </div>
 
                   <div className="col-span-2">
                     <Label>Bio</Label>
-                    <Input type="text" defaultValue="Team Manager" />
+                    <Input 
+                      type="text" 
+                      value={formData.bio}
+                      onChange={(e) => handleInputChange("bio", e.target.value)}
+                      placeholder="Tell us about yourself"
+                    />
                   </div>
                 </div>
               </div>
             </div>
+            {/* Error and Success Messages */}
+            {error && (
+              <div className="px-2 mb-4">
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                  {error}
+                </div>
+              </div>
+            )}
+            
+            {success && (
+              <div className="px-2 mb-4">
+                <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">
+                  {success}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
+              <Button size="sm" variant="outline" onClick={closeModal} disabled={loading}>
                 Close
               </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save Changes
+              <Button size="sm" onClick={handleSave} disabled={loading}>
+                {loading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </form>

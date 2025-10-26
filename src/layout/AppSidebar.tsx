@@ -7,10 +7,12 @@ import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
   CalenderIcon,
+  ChatIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
+  MapIcon,
   PageIcon,
   PieChartIcon,
   PlugInIcon,
@@ -39,6 +41,21 @@ const navItems: NavItem[] = [
     icon: <CalenderIcon />,
     name: "Calendar",
     path: "/calendar",
+  },
+  {
+    icon: <MapIcon />,
+    name: "Map",
+    path: "/map",
+  },
+  {
+    icon: <ListIcon />,
+    name: "My Activities",
+    path: "/my-activities",
+  },
+    {
+    icon: <ChatIcon/>,
+    name: "Messages",
+    path: "/messages",
   },
   {
     icon: <UserCircleIcon />,
