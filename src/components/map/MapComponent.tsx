@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useSession } from "@/lib/auth-client";
 import { Modal } from "@/components/ui/modal";
+import { useChatStore } from "@/stores/useChatStore";
 
 // Fix for default markers in React with Leaflet
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -36,6 +37,7 @@ export default function MapComponent({ className = "", onLocationChange, height 
   const mapInstanceRef = useRef<L.Map | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const activitiesLayerRef = useRef<L.LayerGroup | null>(null);
+  const aiLayerRef = useRef<L.LayerGroup | null>(null);
   const journeyLayerRef = useRef<L.Polyline | null>(null);
   const lastLatLngRef = useRef<L.LatLngExpression | null>(null);
   const [latInput, setLatInput] = useState<string>("");
@@ -56,9 +58,10 @@ export default function MapComponent({ className = "", onLocationChange, height 
   const [tags, setTags] = useState<string[]>([]);
   const [sharedExpenses, setSharedExpenses] = useState<boolean>(false);
   const { data: session } = useSession();
+  const aiSuggestions = useChatStore((state) => state.suggestions);
 
   const [selectedActivity, setSelectedActivity] = useState<ActivityMarker & Record<string, any> | null>(null);
-  const [weather, setWeather] = useState<{ tempC?: number; icon?: string; desc?: string } | null>(null);
+  const suggestionLookupRef = useRef<Map<string, { lat: number; lng: number; title?: string; description?: string }>>(new Map());
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -78,9 +81,11 @@ export default function MapComponent({ className = "", onLocationChange, height 
     mapInstanceRef.current = map;
     // Layer for activities
     activitiesLayerRef.current = L.layerGroup().addTo(map);
+    aiLayerRef.current = L.layerGroup().addTo(map);
     
     // Make joinActivity function available globally for popup buttons
     (window as any).joinActivity = handleJoinActivity;
+    (window as any).createActivityFromAISuggestion = handleCreateFromSuggestion;
     
     // Allow user to set location by clicking the map
     map.on("click", (evt: L.LeafletMouseEvent) => {
@@ -104,8 +109,13 @@ export default function MapComponent({ className = "", onLocationChange, height 
         mapInstanceRef.current = null;
       }
       activitiesLayerRef.current = null;
+      if (aiLayerRef.current) {
+        aiLayerRef.current.remove();
+        aiLayerRef.current = null;
+      }
       journeyLayerRef.current = null;
       delete (window as any).joinActivity;
+      delete (window as any).createActivityFromAISuggestion;
     };
   }, []);
 
@@ -314,6 +324,66 @@ export default function MapComponent({ className = "", onLocationChange, height 
     }
     if (onLocationChange) onLocationChange(lat, lng);
   };
+
+  const handleCreateFromSuggestion = (suggestionId: string) => {
+    const suggestion = suggestionLookupRef.current.get(suggestionId);
+    if (!suggestion) return;
+    const { lat, lng, title: suggestionTitle, description: suggestionDescription } = suggestion;
+    setLatInput(String(lat));
+    setLngInput(String(lng));
+    placeOrMoveMarker([lat, lng]);
+    if (onLocationChange) onLocationChange?.(lat, lng);
+    if (suggestionTitle) setTitle(suggestionTitle);
+    if (suggestionDescription) setDescription(suggestionDescription);
+    setIsCreateOpen(true);
+  };
+
+  useEffect(() => {
+    suggestionLookupRef.current.clear();
+    const layer = aiLayerRef.current;
+    const map = mapInstanceRef.current;
+    if (!layer || !map) return;
+    layer.clearLayers();
+    if (!aiSuggestions.length) return;
+
+    aiSuggestions.forEach((suggestion) => {
+      const id = suggestion.id ?? `${suggestion.lat}:${suggestion.lng}`;
+      suggestionLookupRef.current.set(id, suggestion);
+
+      const icon = L.divIcon({
+        className: "ai-marker-icon",
+        html: `<div class="ai-marker glow">✨</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+      });
+
+      const marker = L.marker([suggestion.lat, suggestion.lng], { icon });
+      const popup = `
+        <div class="space-y-2 text-gray-900">
+          <div class="font-semibold text-gray-900">${suggestion.title ?? "AI Suggested Spot"}</div>
+          ${suggestion.description ? `<div class="text-sm text-gray-700">${suggestion.description}</div>` : ""}
+          <button
+            class="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            onclick="window.createActivityFromAISuggestion && window.createActivityFromAISuggestion('${id}')"
+          >
+            Create Activity Here
+          </button>
+        </div>
+      `;
+      marker.bindPopup(popup);
+      marker.addTo(layer);
+      marker.on("click", () => {
+        setLatInput(String(suggestion.lat));
+        setLngInput(String(suggestion.lng));
+        placeOrMoveMarker([suggestion.lat, suggestion.lng]);
+      });
+    });
+
+    const latest = aiSuggestions[aiSuggestions.length - 1];
+    if (latest) {
+      map.setView([latest.lat, latest.lng], Math.max(map.getZoom(), 15));
+    }
+  }, [aiSuggestions]);
 
   return (
     <div className={`w-full ${className}`}>

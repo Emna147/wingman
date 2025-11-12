@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 
 // Dynamically import the Map component to avoid SSR issues
 const MapComponent = dynamic(() => import("@/components/map/MapComponent"), {
@@ -69,6 +70,8 @@ export default function MapPage() {
           <MapComponent activities={activities} journeyActivities={journeyActivities} onLocationChange={onLocationChange} onActivityCreated={handleCreated} />
         </div>
       </div>
+
+      <ChatWidget />
     </div>
   );
 }
