@@ -73,6 +73,7 @@ export default function TravelBudgetTracker() {
   const [showAdvancedExpense, setShowAdvancedExpense] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
+  const [showBudgetSettings, setShowBudgetSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   const [scanningReceipt, setScanningReceipt] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
@@ -188,6 +189,7 @@ export default function TravelBudgetTracker() {
           totalMonthly: budget.totalMonthly,
           template: budget.template,
           categories: budget.categories,
+          budgetId: budget._id, // Include budgetId to update existing budget
         }),
       });
 
@@ -196,6 +198,7 @@ export default function TravelBudgetTracker() {
       const data = await response.json();
       setBudget(data);
       setShowBudgetSetup(false);
+      setShowBudgetSettings(false);
       showNotification('success', 'Budget configured successfully!');
     } catch (error) {
       console.error('Error saving budget:', error);
@@ -545,11 +548,13 @@ export default function TravelBudgetTracker() {
             </h1>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setDarkMode(!darkMode)}
+                onClick={() => setShowBudgetSettings(true)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Budget Settings"
               >
-                {darkMode ? <Sun className="w-5 h-5 text-gray-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+                <DollarSign className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
+              
             </div>
           </div>
         </header>
@@ -754,6 +759,140 @@ export default function TravelBudgetTracker() {
                     Delete
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showBudgetSettings && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-3xl shadow-2xl my-8">
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between rounded-t-2xl">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Budget Settings</h3>
+                <button 
+                  onClick={() => setShowBudgetSettings(false)} 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Primary Currency
+                  </label>
+                  <select
+                    value={budget.currency}
+                    onChange={(e) => setBudget(prev => ({ ...prev, currency: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  >
+                    {currencies.map(curr => (
+                      <option key={curr} value={curr}>{curr}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Monthly Budget
+                  </label>
+                  <input
+                    type="number"
+                    value={budget.totalMonthly}
+                    onChange={(e) => {
+                      const total = parseFloat(e.target.value) || 0;
+                      setBudget(prev => ({
+                        ...prev,
+                        totalMonthly: total,
+                        categories: prev.categories.map(cat => ({
+                          ...cat,
+                          amount: (total * cat.percentage) / 100
+                        }))
+                      }));
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    placeholder="2000"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Budget Template
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(['Backpacker', 'Digital Nomad', 'Comfortable', 'Custom'] as BudgetTemplate[]).map(template => (
+                      <button
+                        key={template}
+                        onClick={() => handleTemplateChange(template)}
+                        className={`px-4 py-3 rounded-lg font-medium transition-colors ${
+                          budget.template === template
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {template}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                    Category Breakdown
+                  </label>
+                  <div className="space-y-4">
+                    {budget.categories.map((cat, idx) => (
+                      <div key={cat.name} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {getCategoryIcon(cat.name)} {cat.name}
+                          </span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {cat.percentage}%
+                            </span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white w-20 text-right">
+                              {budget.currency} {cat.amount.toFixed(0)}
+                            </span>
+                          </div>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={cat.percentage}
+                          onChange={(e) => handleCategoryChange(idx, parseInt(e.target.value))}
+                          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                          disabled={budget.template !== 'Custom'}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-gray-900 dark:text-white">Total</span>
+                      <span className={`font-bold ${
+                        budget.categories.reduce((sum, cat) => sum + cat.percentage, 0) === 100
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {budget.categories.reduce((sum, cat) => sum + cat.percentage, 0)}% 
+                        ({budget.currency} {budget.categories.reduce((sum, cat) => sum + cat.amount, 0).toFixed(0)})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleBudgetSetup}
+                  disabled={loading}
+                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {loading && <Loader className="w-4 h-4 animate-spin" />}
+                  Save Budget Configuration
+                </button>
               </div>
             </div>
           </div>

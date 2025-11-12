@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { currency, totalMonthly, template, categories } = body;
+    const { currency, totalMonthly, template, categories, budgetId } = body;
 
     if (!currency || !totalMonthly || !template || !categories) {
       return NextResponse.json(
@@ -62,10 +62,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Deactivate old budgets for this month
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    // If budgetId is provided, UPDATE existing budget
+    if (budgetId) {
+      const existingBudget = await Budget.findOne({
+        _id: budgetId,
+        userId,
+      });
+
+      if (!existingBudget) {
+        return NextResponse.json(
+          { error: 'Budget not found' },
+          { status: 404 }
+        );
+      }
+
+      // Update the existing budget
+      existingBudget.currency = currency;
+      existingBudget.totalMonthly = totalMonthly;
+      existingBudget.template = template;
+      existingBudget.categories = categories;
+
+      await existingBudget.save();
+
+      return NextResponse.json(existingBudget);
+    }
+
+    // Otherwise, create NEW budget (first time setup)
+    // Deactivate old budgets for this month
     await Budget.updateMany(
       {
         userId,
@@ -89,9 +115,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(budget, { status: 201 });
   } catch (error) {
-    console.error('Error creating budget:', error);
+    console.error('Error creating/updating budget:', error);
     return NextResponse.json(
-      { error: 'Failed to create budget' },
+      { error: 'Failed to create/update budget' },
       { status: 500 }
     );
   }
