@@ -101,9 +101,9 @@ export const DayItineraryView: React.FC<DayItineraryViewProps> = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="rounded-lg border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-black dark:text-white">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white/90">
             {day.date.toLocaleDateString()}
           </h3>
           <div className="flex gap-2">
@@ -127,9 +127,9 @@ export const DayItineraryView: React.FC<DayItineraryViewProps> = ({
 
         {/* Activity Suggestions */}
         {showSuggestions && (
-          <div className="mb-4 rounded-lg border border-stroke bg-white dark:border-strokedark dark:bg-boxdark p-4">
+          <div className="mb-4 rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-lg font-semibold text-black dark:text-white">
+              <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90">
                 Activity Suggestions
               </h4>
               <button
@@ -152,12 +152,12 @@ export const DayItineraryView: React.FC<DayItineraryViewProps> = ({
                 {suggestions.map((suggestion, index) => (
                   <div
                     key={index}
-                    className="rounded-lg border border-stroke p-3 dark:border-strokedark hover:bg-gray-50 dark:hover:bg-gray-800"
+                    className="rounded-lg border border-gray-200 p-3 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="mb-1 flex items-center gap-2">
-                          <h5 className="font-medium text-black dark:text-white">
+                          <h5 className="font-medium text-gray-800 dark:text-white/90">
                             {suggestion.title}
                           </h5>
                           <span className="rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -188,20 +188,20 @@ export const DayItineraryView: React.FC<DayItineraryViewProps> = ({
         )}
 
         {showAddActivity && (
-          <div className="mb-4 space-y-4 rounded-lg border border-stroke p-4 dark:border-strokedark">
+          <div className="mb-4 space-y-4 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
             <input
               type="text"
               value={newActivity.title}
               onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })}
               placeholder="Activity title"
-              className="w-full rounded-lg border border-stroke bg-transparent px-5 py-3 text-black dark:text-white"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-900 px-5 py-3 text-sm text-gray-800 dark:text-white/90 placeholder-gray-400 dark:placeholder:text-white/30 focus:outline-hidden focus:border-brand-300 dark:focus:border-brand-800 focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
             />
             <input
               type="number"
               value={newActivity.cost || ''}
               onChange={(e) => setNewActivity({ ...newActivity, cost: Number(e.target.value) })}
               placeholder="Cost (optional)"
-              className="w-full rounded-lg border border-stroke bg-transparent px-5 py-3 text-black dark:text-white"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-900 px-5 py-3 text-sm text-gray-800 dark:text-white/90 placeholder-gray-400 dark:placeholder:text-white/30 focus:outline-hidden focus:border-brand-300 dark:focus:border-brand-800 focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
             />
             <div className="flex justify-end space-x-2">
               <button
@@ -257,13 +257,13 @@ export const DayItineraryView: React.FC<DayItineraryViewProps> = ({
 
         {day.notes && (
           <div className="mt-4">
-            <h4 className="mb-2 font-medium text-black dark:text-white">Notes</h4>
-            <p className="text-sm">{day.notes}</p>
+            <h4 className="mb-2 font-medium text-gray-800 dark:text-white/90">Notes</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{day.notes}</p>
           </div>
         )}
 
-        <div className="mt-4 flex justify-between border-t border-stroke pt-4 dark:border-strokedark">
-          <span className="font-medium text-black dark:text-white">Daily Total</span>
+        <div className="mt-4 flex justify-between border-t border-gray-200 pt-4 dark:border-gray-800">
+          <span className="font-medium text-gray-800 dark:text-white/90">Daily Total</span>
           <span className="font-medium text-brand-500">${day.totalCost}</span>
         </div>
       </div>

@@ -160,7 +160,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading }) => {
               setShowSuggestions(true);
             }
           }}
-          className="mt-2 w-full rounded-lg border border-stroke bg-white dark:bg-boxdark px-5 py-3 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+          className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-900 px-5 py-3 text-sm text-gray-800 dark:text-white/90 placeholder-gray-400 dark:placeholder:text-white/30 focus:outline-hidden focus:border-brand-300 dark:focus:border-brand-800 focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
           placeholder="e.g. Bali, Indonesia"
           autoComplete="off"
         />
@@ -172,7 +172,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading }) => {
         {showSuggestions && suggestions.length > 0 && (
           <div
             ref={suggestionsRef}
-            className="absolute z-50 mt-1 w-full rounded-lg border border-stroke bg-white dark:bg-boxdark shadow-lg max-h-60 overflow-auto"
+            className="absolute z-50 mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg max-h-60 overflow-auto"
           >
             {suggestions.map((suggestion, index) => (
               <button
@@ -182,8 +182,8 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading }) => {
                 className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
                   index === selectedIndex
                     ? 'bg-gray-100 dark:bg-gray-800'
-                    : 'bg-white dark:bg-boxdark'
-                } text-black dark:text-white border-b border-stroke dark:border-strokedark last:border-b-0`}
+                    : 'bg-white dark:bg-gray-900'
+                } text-gray-800 dark:text-white/90 border-b border-gray-200 dark:border-gray-700 last:border-b-0`}
               >
                 <div className="font-medium">{suggestion.name}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">{suggestion.country}</div>
@@ -249,13 +249,13 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading }) => {
         <select
           id="travelStyle"
           {...register('travelStyle', { required: 'Travel style is required' })}
-          className="mt-2 w-full rounded-lg border border-stroke bg-white dark:bg-boxdark px-5 py-3 text-black dark:text-white"
+          className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-900 px-5 py-3 text-sm text-gray-800 dark:text-white/90 focus:outline-hidden focus:border-brand-300 dark:focus:border-brand-800 focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs appearance-none"
         >
-          <option value="">Select travel style</option>
-          <option value="Backpacker">Backpacker</option>
-          <option value="Digital Nomad">Digital Nomad</option>
-          <option value="Comfortable">Comfortable</option>
-          <option value="Premium">Premium</option>
+          <option value="" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white/90">Select travel style</option>
+          <option value="Backpacker" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white/90">Backpacker</option>
+          <option value="Digital Nomad" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white/90">Digital Nomad</option>
+          <option value="Comfortable" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white/90">Comfortable</option>
+          <option value="Premium" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white/90">Premium</option>
         </select>
         {errors.travelStyle && (
           <p className="mt-1 text-sm text-danger">{errors.travelStyle.message}</p>
@@ -268,7 +268,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading }) => {
           id="accommodation"
           type="text"
           {...register('accommodation')}
-          className="mt-2 w-full rounded-lg border border-stroke bg-white dark:bg-boxdark px-5 py-3 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+          className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-900 px-5 py-3 text-sm text-gray-800 dark:text-white/90 placeholder-gray-400 dark:placeholder:text-white/30 focus:outline-hidden focus:border-brand-300 dark:focus:border-brand-800 focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
           placeholder="e.g. Hotel preferences, areas"
         />
       </div>
@@ -279,7 +279,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading }) => {
           id="transport"
           type="text"
           {...register('transport')}
-          className="mt-2 w-full rounded-lg border border-stroke bg-white dark:bg-boxdark px-5 py-3 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+          className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-900 px-5 py-3 text-sm text-gray-800 dark:text-white/90 placeholder-gray-400 dark:placeholder:text-white/30 focus:outline-hidden focus:border-brand-300 dark:focus:border-brand-800 focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
           placeholder="e.g. Flight, car rental"
         />
       </div>
@@ -290,7 +290,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading }) => {
           id="dailyBudget"
           type="number"
           {...register('dailyBudget')}
-          className="mt-2 w-full rounded-lg border border-stroke bg-white dark:bg-boxdark px-5 py-3 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+          className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-900 px-5 py-3 text-sm text-gray-800 dark:text-white/90 placeholder-gray-400 dark:placeholder:text-white/30 focus:outline-hidden focus:border-brand-300 dark:focus:border-brand-800 focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
           placeholder="Enter amount in USD"
         />
       </div>

@@ -78,7 +78,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                     ? 'bg-brand-500 text-white'
                     : hasActivities
                     ? 'bg-brand-500/10 text-brand-500'
-                  : 'bg-gray-100 text-gray-600 dark:bg-boxdark'
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-400'
               }`}
             >
               {date.toLocaleDateString('en-US', {
@@ -110,17 +110,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       )}
 
       {/* Trip Summary */}
-      <div className="rounded-lg border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <h3 className="mb-4 text-xl font-semibold text-black dark:text-white">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
           Trip Summary
         </h3>
     {trip.summary && (
       <div className="space-y-3">
-        <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+        <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
           {trip.summary.overview}
         </p>
         {trip.summary.highlights.length > 0 && (
-          <ul className="list-disc space-y-1 pl-5 text-sm text-gray-700 dark:text-gray-300">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-400">
             {trip.summary.highlights.map((highlight, index) => (
               <li key={index}>{highlight}</li>
             ))}
@@ -131,11 +131,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     <div className="mt-6 space-y-4">
       <div className="flex justify-between">
         <span className="text-gray-600 dark:text-gray-400">Total Days</span>
-        <span className="font-medium">{allDates.length} days</span>
+        <span className="font-medium text-gray-800 dark:text-white/90">{allDates.length} days</span>
       </div>
       <div className="flex justify-between">
         <span className="text-gray-600 dark:text-gray-400">Planned Activities</span>
-        <span className="font-medium">
+        <span className="font-medium text-gray-800 dark:text-white/90">
           {itinerary.reduce((sum, day) => sum + (day.activities?.length || 0), 0)}
         </span>
       </div>

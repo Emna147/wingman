@@ -12,8 +12,8 @@ export const TripSummaryCard: React.FC<TripSummaryCardProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <h3 className="mb-4 text-xl font-semibold text-black dark:text-white">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
           Generating trip summary...
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -24,21 +24,21 @@ export const TripSummaryCard: React.FC<TripSummaryCardProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-      <h3 className="mb-4 text-xl font-semibold text-black dark:text-white">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
         Trip Summary
       </h3>
 
-      <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+      <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
         {summary.overview}
       </p>
 
       {summary.highlights.length > 0 && (
         <div className="mt-4">
-          <h4 className="mb-2 font-medium text-black dark:text-white">
+          <h4 className="mb-2 font-medium text-gray-800 dark:text-white/90">
             Key Highlights
           </h4>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-gray-700 dark:text-gray-300">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-400">
             {summary.highlights.map((highlight, index) => (
               <li key={index}>{highlight}</li>
             ))}
