@@ -17,8 +17,9 @@ const MapComponent = dynamic(() => import("@/components/map/MapComponent"), {
 });
 
 export default function MapPage() {
-  const [activities, setActivities] = useState<Array<{ _id?: string; name: string; location: { lat: number; lng: number } }>>([]);
+  const [activities, setActivities] = useState<Array<any>>([]);
   const [error, setError] = useState<string | null>(null);
+  const [journeyActivities, setJourneyActivities] = useState<Array<any>>([]);
 
   const fetchActivities = async () => {
     try {
@@ -32,14 +33,25 @@ export default function MapPage() {
     }
   };
 
+  const fetchMine = async () => {
+    try {
+      const res = await fetch("/api/activities?mine=true", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      setJourneyActivities(data.activities ?? []);
+    } catch {}
+  };
+
   useEffect(() => {
     fetchActivities();
+    fetchMine();
   }, []);
 
   const onLocationChange = () => {};
 
   const handleCreated = async () => {
     await fetchActivities();
+    await fetchMine();
   };
 
   return (
@@ -54,7 +66,7 @@ export default function MapPage() {
           {error && (
             <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
           )}
-          <MapComponent activities={activities} onLocationChange={onLocationChange} onActivityCreated={handleCreated} />
+          <MapComponent activities={activities} journeyActivities={journeyActivities} onLocationChange={onLocationChange} onActivityCreated={handleCreated} />
         </div>
       </div>
     </div>

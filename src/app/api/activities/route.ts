@@ -5,6 +5,16 @@ import { auth } from "@/lib/auth";
 interface Activity {
   _id?: string;
   name: string;
+  title?: string;
+  description?: string;
+  budget?: "Free" | "Low" | "Medium" | "High" | "Luxury";
+  types?: string[];
+  duration?: "Short (1–2h)" | "Half-day" | "Full-day" | "Multi-day";
+  dateTime?: string; // ISO string
+  locationType?: "Outdoor" | "Indoor" | "Weather-friendly";
+  socialVibe?: "Solo" | "Small group" | "Public" | "Friends-only" | "Couples";
+  tags?: string[];
+  sharedExpenses?: boolean;
   location: {
     lat: number;
     lng: number;
@@ -52,17 +62,42 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb();
     const body = await request.json();
-    const { name, location } = body ?? {};
+    const {
+      name,
+      title,
+      description,
+      budget,
+      types,
+      duration,
+      dateTime,
+      locationType,
+      socialVibe,
+      tags,
+      sharedExpenses,
+      location,
+    } = body ?? {};
 
-    if (!name || !location || typeof location.lat !== "number" || typeof location.lng !== "number") {
+    const activityName = String(name ?? title ?? "").trim();
+
+    if (!activityName || !location || typeof location.lat !== "number" || typeof location.lng !== "number") {
       return NextResponse.json(
-        { error: "Invalid payload: require name and location { lat, lng }" },
+        { error: "Invalid payload: require title/name and location { lat, lng }" },
         { status: 400 }
       );
     }
 
     const activity: Activity = {
-      name: String(name).trim(),
+      name: activityName,
+      title: title ? String(title).trim() : activityName,
+      description: description ? String(description).trim() : undefined,
+      budget,
+      types: Array.isArray(types) ? types.slice(0, 16) : undefined,
+      duration,
+      dateTime,
+      locationType,
+      socialVibe,
+      tags: Array.isArray(tags) ? tags.slice(0, 32) : undefined,
+      sharedExpenses: !!sharedExpenses,
       location: { lat: location.lat, lng: location.lng },
       hostId: session.user.id,
       participants: [],
