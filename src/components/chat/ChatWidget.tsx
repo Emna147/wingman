@@ -178,7 +178,7 @@ export function ChatWidget({ className, onSuggestion }: ChatWidgetProps) {
         onClick={toggle}
         aria-label={isOpen ? "Close chat" : "Open chat"}
         className={cn(
-          "fixed bottom-6 right-6 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg transition hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-gray-900 md:bottom-8 md:right-8",
+          "fixed bottom-6 right-6 z-[9999] flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg transition hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-gray-900 md:bottom-8 md:right-8",
           isOpen && "scale-0 opacity-0 pointer-events-none"
         )}
       >
@@ -193,7 +193,7 @@ export function ChatWidget({ className, onSuggestion }: ChatWidgetProps) {
             exit={{ opacity: 0, y: 16 }}
             transition={{ type: "spring", stiffness: 180, damping: 20 }}
             className={cn(
-              "fixed inset-x-0 bottom-0 top-auto z-[70] mx-auto flex h-[min(80vh,520px)] w-full max-w-none flex-col border border-gray-800 bg-gray-950/95 text-gray-100 shadow-2xl backdrop-blur",
+              "fixed inset-x-0 bottom-0 top-auto z-[9999] mx-auto flex h-[min(80vh,520px)] w-full max-w-none flex-col border border-gray-800 bg-gray-950/95 text-gray-100 shadow-2xl backdrop-blur",
               "md:bottom-28 md:right-8 md:left-auto md:h-[520px] md:w-[380px] md:max-w-[380px] md:rounded-3xl md:border md:bg-gray-950/90",
               className
             )}
