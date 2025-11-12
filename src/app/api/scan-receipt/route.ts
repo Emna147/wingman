@@ -1,5 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Helper function to sleep/wait
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Retry logic with exponential backoff
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, options);
+      
+      // If we get a 503, retry after a delay
+      if (response.status === 503 && i < maxRetries - 1) {
+        const waitTime = Math.min(1000 * Math.pow(2, i), 5000); // exponential backoff, max 5s
+        console.log(`API overloaded, retrying in ${waitTime}ms... (attempt ${i + 1}/${maxRetries})`);
+        await sleep(waitTime);
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      const waitTime = Math.min(1000 * Math.pow(2, i), 5000);
+      console.log(`Request failed, retrying in ${waitTime}ms... (attempt ${i + 1}/${maxRetries})`);
+      await sleep(waitTime);
+    }
+  }
+  
+  throw new Error('Max retries reached');
+}
+
 export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id');
@@ -36,20 +65,28 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
     const base64Image = buffer.toString('base64');
 
-    // Use gemini-2.5-flash - the latest model you have access to
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
+    // Use gemini-2.5-flash (the correct model name)
+    const models = ['gemini-2.5-flash', 'gemini-1.5-pro-latest', 'gemini-1.5-flash-latest'];
+    let response;
+    let lastError;
+
+    // Try different models if one fails
+    for (const model of models) {
+      try {
+        console.log(`Trying model: ${model}`);
+        response = await fetchWithRetry(
+          `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [
                 {
-                  text: `Analyze this receipt image and extract the following information in JSON format:
+                  parts: [
+                    {
+                      text: `Analyze this receipt image and extract the following information in JSON format:
 {
   "amount": <total amount as a number>,
   "category": <one of: "Accommodation", "Food", "Transport", "Social", "Miscellaneous">,
@@ -68,26 +105,61 @@ Rules:
 - Otherwise use "Miscellaneous"
 - Return ONLY the JSON object, no additional text
 - If you cannot read the receipt clearly, return an error field: {"error": "Cannot read receipt"}`
-                },
-                {
-                  inline_data: {
-                    mime_type: imageFile.type,
-                    data: base64Image
-                  }
+                    },
+                    {
+                      inline_data: {
+                        mime_type: imageFile.type,
+                        data: base64Image
+                      }
+                    }
+                  ]
                 }
-              ]
-            }
-          ]
-        })
-      }
-    );
+              ],
+              generationConfig: {
+                temperature: 0.4,
+                topK: 32,
+                topP: 1,
+                maxOutputTokens: 2048,
+              }
+            })
+          },
+          3 // max retries
+        );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', response.status, errorText);
+        if (response.ok) {
+          console.log(`Successfully used model: ${model}`);
+          break; // Success, exit loop
+        }
+
+        lastError = await response.text();
+        console.log(`Model ${model} failed:`, response.status, lastError);
+      } catch (error) {
+        console.log(`Model ${model} error:`, error);
+        lastError = error;
+      }
+    }
+
+    if (!response || !response.ok) {
+      console.error('All models failed. Last error:', lastError);
+      
+      // Check if it's a rate limit or overload error
+      const errorStr = typeof lastError === 'string' ? lastError : JSON.stringify(lastError);
+      if (errorStr.includes('503') || errorStr.includes('overloaded') || errorStr.includes('UNAVAILABLE')) {
+        return NextResponse.json(
+          { 
+            error: 'AI service is currently overloaded. Please try again in a few moments.',
+            userFriendly: true 
+          },
+          { status: 503 }
+        );
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to process receipt', details: errorText },
-        { status: response.status }
+        { 
+          error: 'Failed to process receipt. Please try again.',
+          details: typeof lastError === 'string' ? lastError : 'Unknown error'
+        },
+        { status: 500 }
       );
     }
 
@@ -146,7 +218,7 @@ Rules:
     
     return NextResponse.json(
       { 
-        error: 'Failed to process receipt', 
+        error: 'Failed to process receipt. Please try again.',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
