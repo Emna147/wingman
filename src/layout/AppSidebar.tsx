@@ -19,6 +19,7 @@ import {
   TableIcon,
   UserCircleIcon,
 } from "../icons/index";
+import { TripPlanningIcon } from "../icons/TripPlanningIcon";
 import SidebarWidget from "./SidebarWidget";
 
 type NavItem = {
@@ -61,6 +62,14 @@ const navItems: NavItem[] = [
     icon: <UserCircleIcon />,
     name: "User Profile",
     path: "/profile",
+  },
+  {
+    name: "Trip Planning",
+    icon: <TripPlanningIcon />,
+    subItems: [
+      { name: 'Create Trip', path: '/trip-planning' },
+      { name: 'Trip History', path: '/trip-planning/history' },
+    ],
   },
 
   {
