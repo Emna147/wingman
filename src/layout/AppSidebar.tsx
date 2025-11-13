@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
@@ -15,7 +15,6 @@ import {
   MapIcon,
   PageIcon,
   PieChartIcon,
-  PlugInIcon,
   TableIcon,
   UserCircleIcon,
 } from "../icons/index";
@@ -56,6 +55,11 @@ const navItems: NavItem[] = [
     icon: <ChatIcon/>,
     name: "Messages",
     path: "/messages",
+  },
+  {
+    icon: <MapIcon />,
+    name: "Visa Manager",
+    path: "/visa-manager",
   },
   {
     icon: <UserCircleIcon />,

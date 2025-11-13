@@ -1,13 +1,56 @@
 "use client";
+import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
+interface VisaNotification {
+  _id: string;
+  type: string;
+  country: string;
+  expiryDate: string;
+  daysRemaining: number;
+  status: string;
+}
+
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifying, setNotifying] = useState(true);
+  const [notifying, setNotifying] = useState(false);
+  const [visaNotifications, setVisaNotifications] = useState<VisaNotification[]>([]);
+
+  useEffect(() => {
+    fetchVisaNotifications();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchVisaNotifications, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function fetchVisaNotifications() {
+    try {
+      const session = await authClient.getSession();
+      const userId = session.data?.user?.id;
+      
+      if (!userId) return;
+
+      const response = await fetch('/api/documents/expiring?threshold=30', {
+        headers: {
+          'x-user-id': userId,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const urgent = data.urgent || [];
+        const soon = data.soon || [];
+        setVisaNotifications([...urgent, ...soon]);
+        setNotifying(urgent.length > 0 || soon.length > 0);
+      }
+    } catch (error) {
+      console.error('Error fetching visa notifications:', error);
+    }
+  }
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -19,7 +62,6 @@ export default function NotificationDropdown() {
 
   const handleClick = () => {
     toggleDropdown();
-    setNotifying(false);
   };
   return (
     <div className="relative">
@@ -79,8 +121,46 @@ export default function NotificationDropdown() {
           </button>
         </div>
         <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
-          {/* Example notification items */}
-          <li>
+          {/* Visa Notifications */}
+          {visaNotifications.length > 0 ? (
+            visaNotifications.map((doc) => (
+              <li key={doc._id}>
+                <Link
+                  href="/visa-manager"
+                  onClick={closeDropdown}
+                  className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+                >
+                  <span className="relative block w-full h-10 rounded-full z-1 max-w-10 flex items-center justify-center bg-orange-100 dark:bg-orange-900/20">
+                    <span className="text-2xl">
+                      {doc.type === 'passport' ? '🛂' : doc.type === 'visa' ? '📋' : '📄'}
+                    </span>
+                  </span>
+
+                  <span className="block flex-1">
+                    <span className="mb-1.5 block text-theme-sm text-gray-800 dark:text-white/90">
+                      <span className="font-medium">{doc.country} {doc.type}</span>{' '}
+                      expiring in {doc.daysRemaining} days!
+                    </span>
+
+                    <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                      <span>Visa Manager</span>
+                      <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                      <span>{new Date(doc.expiryDate).toLocaleDateString()}</span>
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))
+          ) : (
+            <li className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                No notifications
+              </p>
+            </li>
+          )}
+          
+          {/* Example notification items - keeping one for reference */}
+          <li className="hidden">
             <DropdownItem
               onItemClick={closeDropdown}
               className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
