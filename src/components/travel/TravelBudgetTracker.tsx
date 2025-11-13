@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { PlusCircle, DollarSign, TrendingUp, Calendar, X, AlertCircle, Check, Sun, Moon, Loader, Camera, Trash2 } from 'lucide-react';
+import { AlertCircle, Calendar, Camera, Check, DollarSign, Loader, PlusCircle, Trash2, TrendingUp, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type BudgetTemplate = 'Backpacker' | 'Digital Nomad' | 'Comfortable' | 'Custom';
 type ExpenseCategory = 'Accommodation' | 'Food' | 'Transport' | 'Social' | 'Miscellaneous';
@@ -66,8 +66,11 @@ const budgetTemplates: Record<BudgetTemplate, Omit<BudgetCategory, 'amount'>[]> 
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'THB'];
 
-export default function TravelBudgetTracker() {
-  const [darkMode, setDarkMode] = useState(false);
+interface TravelBudgetTrackerProps {
+  onBudgetChange?: (budgetId: string | null) => void;
+}
+
+export default function TravelBudgetTracker({ onBudgetChange }: TravelBudgetTrackerProps = {}) {
   const [showBudgetSetup, setShowBudgetSetup] = useState(true);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showAdvancedExpense, setShowAdvancedExpense] = useState(false);
@@ -103,12 +106,14 @@ export default function TravelBudgetTracker() {
 
   useEffect(() => {
     fetchBudget();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (budget._id && !showBudgetSetup) {
       fetchExpenses();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [budget._id, showBudgetSetup]);
 
   const getUserId = () => {
@@ -131,6 +136,10 @@ export default function TravelBudgetTracker() {
       if (data) {
         setBudget(data);
         setShowBudgetSetup(false);
+        // Notify parent component of budget ID change
+        if (onBudgetChange && data._id) {
+          onBudgetChange(data._id);
+        }
       }
     } catch (error) {
       console.error('Error fetching budget:', error);
@@ -200,6 +209,10 @@ export default function TravelBudgetTracker() {
       setShowBudgetSetup(false);
       setShowBudgetSettings(false);
       showNotification('success', 'Budget configured successfully!');
+      // Notify parent component of budget ID change
+      if (onBudgetChange && data._id) {
+        onBudgetChange(data._id);
+      }
     } catch (error) {
       console.error('Error saving budget:', error);
       showNotification('error', 'Failed to save budget');
@@ -396,7 +409,7 @@ export default function TravelBudgetTracker() {
 
   if (showBudgetSetup) {
     return (
-      <div className={darkMode ? 'dark' : ''}>
+      <div>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
           <div className="max-w-3xl mx-auto">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8">
@@ -539,7 +552,7 @@ export default function TravelBudgetTracker() {
   const dailyBudget = daysRemaining > 0 ? remainingBudget / daysRemaining : 0;
 
   return (
-    <div className={darkMode ? 'dark' : ''}>
+    <div>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
           <div className="px-4 py-4 flex items-center justify-between">
