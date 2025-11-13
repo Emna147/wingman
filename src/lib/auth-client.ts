@@ -7,10 +7,6 @@ export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
 });
 
-const session = await authClient.getSession({ query: {
-    disableCookieCache: true
-}});
-
 // ✅ Export useful methods directly
 export const {
   signIn,

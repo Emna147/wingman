@@ -7,7 +7,17 @@ import { BudgetForecast } from '@/features/trip-planning/components/BudgetForeca
 import { TimelineView } from '@/features/trip-planning/components/TimelineView';
 import { TripSummaryCard } from '@/features/trip-planning/components/TripSummaryCard';
 import { useToast } from '@/context/ToastContext';
-import { Destination, TripBudgetForecast, Trip, TripSummary } from '@/features/trip-planning/types';
+import { Destination, TripBudgetForecast, Trip, TripSummary, TravelStyle } from '@/features/trip-planning/types';
+
+interface TripFormData {
+  destination: string;
+  startDate: Date;
+  endDate: Date;
+  travelStyle: TravelStyle;
+  accommodation?: string;
+  transport?: string;
+  dailyBudget?: number;
+}
 
 export default function TripPlanningPage() {
   const toast = useToast();
@@ -17,7 +27,7 @@ export default function TripPlanningPage() {
   const [summary, setSummary] = useState<TripSummary | null>(null);
   const [trip, setTrip] = useState<Trip | null>(null);
 
-  const handleTripFormSubmit = async (formData: any) => {
+  const handleTripFormSubmit = async (formData: TripFormData) => {
     setIsLoading(true);
     setDestination(null);
     setForecast(null);
@@ -110,7 +120,7 @@ export default function TripPlanningPage() {
             amount: forecastData.breakdown.activities,
             breakdown: [],
           },
-          total: Object.values(forecastData.breakdown).reduce((a, b) => a + b, 0),
+          total: (Object.values(forecastData.breakdown) as number[]).reduce((a, b) => a + b, 0),
           currency: 'USD',
         },
         itinerary: [],

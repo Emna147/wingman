@@ -100,7 +100,6 @@ const itinerarySchema = new Schema<IItinerary>(
     },
     tripId: {
       type: String,
-      index: true,
     },
     name: {
       type: String,
